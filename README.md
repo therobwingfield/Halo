@@ -43,3 +43,6 @@ npm run build
 - `electron/`: Node.js main process, IPC handlers, and frameless window configuration.
 - `scripts/`: Python bridging scripts for deep Windows hardware integration.
 - `public/`: Drop your default static assets (like `rain.mp3`) here.
+
+## Attribution
+**Celera Halo** was created and designed by **Rob Wingfield**.
