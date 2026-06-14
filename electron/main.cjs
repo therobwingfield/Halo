@@ -19,8 +19,8 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    x: width - windowWidth - 20,
-    y: 20,
+    x: Math.round((width / 2) - (windowWidth / 2)),
+    y: height - windowHeight - 20,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
