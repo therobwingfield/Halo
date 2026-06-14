@@ -61,8 +61,7 @@ npm run build
 ## Attribution & License
 
 - **Concept, Design, & Architecture**: Rob Wingfield
-- **Engineering Assistance**: Antigravity AI
 
-This project is open-sourced under the [MIT License](LICENSE).
+Copyright (c) 2026 Rob Wingfield. All Rights Reserved.
 
 *Built exclusively for Windows 11.*
