@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   hideStopWindow: () => ipcRenderer.invoke('hide-stop-window'),
   hideMainWindow: () => ipcRenderer.invoke('hide-main-window'),
   showMainWindow: () => ipcRenderer.invoke('show-main-window'),
+  setClockPosition: (pos) => ipcRenderer.invoke('set-clock-position', pos),
   onStopAudio: (callback) => ipcRenderer.on('stop-audio-triggered', callback)
 });

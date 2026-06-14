@@ -73,7 +73,8 @@ function MainWindow() {
   const [masterBrightness, setMasterBrightness] = useState(40);
   const [audioPath, setAudioPath] = useState(localStorage.getItem('audioPath') || '');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0); // Safely default to 0
+  const [volume, setVolume] = useState(0); 
+  const [isMorningActive, setIsMorningActive] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -92,10 +93,13 @@ function MainWindow() {
       setIsPlaying(false);
       window.electronAPI.showMainWindow();
       setActivePanel(null);
+      setIsMorningActive(false);
     });
     
-    // Set initial volume to 0 safely on start
-    window.electronAPI.setVolume(0);
+    // Set internal HTML5 audio volume to 0 safely on start
+    if (audioRef.current) {
+      audioRef.current.volume = 0;
+    }
   }, []);
 
   const loadDisplays = async () => {
@@ -125,17 +129,20 @@ function MainWindow() {
   };
 
   const runMorning = async () => {
-    await window.electronAPI.setVolume(30);
-    setVolume(30);
-    await window.electronAPI.setMasterBrightness(40);
-    setMasterBrightness(40);
+    // Temporarily disabled hardware changes for safe testing alongside CCP
+    // await window.electronAPI.setVolume(30);
+    // setVolume(30);
+    // await window.electronAPI.setMasterBrightness(40);
+    // setMasterBrightness(40);
+    
     window.electronAPI.showClock();
     if (audioRef.current && audioPath) {
       audioRef.current.play();
       setIsPlaying(true);
     }
-    setActivePanel('work_mode');
-    window.electronAPI.hideMainWindow();
+    
+    setIsMorningActive(true);
+    // Main window is NO LONGER hidden so the user can access dimmer/clock during morning
   };
 
   const runNap = () => {
@@ -147,10 +154,13 @@ function MainWindow() {
   };
 
   const runWork = async () => {
-    await window.electronAPI.setMasterBrightness(100);
+    // Temporarily disabled for safe testing
+    // await window.electronAPI.setMasterBrightness(100);
+    
     window.electronAPI.hideClock();
     window.electronAPI.showStopWindow();
     setActivePanel(null);
+    setIsMorningActive(false);
   };
 
   return (
@@ -158,29 +168,30 @@ function MainWindow() {
       <audio ref={audioRef} src={audioPath ? `file://${audioPath.replace(/\\/g, '/')}` : ''} loop />
 
       {activePanel === null ? (
-        <div className="main-grid">
-          <button className="pad-btn" onClick={() => setActivePanel('routine')}>
-            <PlaySquare size={20} color="var(--accent)" />
-            Routine
-          </button>
-          <button className="pad-btn" onClick={handleDimmer}>
-            <Sun size={20} color="var(--accent)" />
-            Dimmer
-          </button>
-          <button className="pad-btn" onClick={() => setActivePanel('audio')}>
-            <Music size={20} color="var(--accent)" />
-            Audio
-          </button>
-          <button className="pad-btn" onClick={() => setActivePanel('clock')}>
-            <Clock size={20} color="var(--accent)" />
-            Clock
-          </button>
-        </div>
-      ) : activePanel === 'work_mode' ? (
-        <div style={{ padding: '12px', height: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button className="pad-btn" style={{ flex: 1, borderColor: '#37d67a' }} onClick={runWork}>
-            Work (End Morning)
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {isMorningActive && (
+            <button className="pad-btn" style={{ borderColor: '#37d67a', marginBottom: '8px', minHeight: '36px' }} onClick={runWork}>
+              Work (End Morning)
+            </button>
+          )}
+          <div className="main-grid" style={{ flex: 1 }}>
+            <button className="pad-btn" onClick={() => setActivePanel('routine')}>
+              <PlaySquare size={20} color="var(--accent)" />
+              Routine
+            </button>
+            <button className="pad-btn" onClick={handleDimmer}>
+              <Sun size={20} color="var(--accent)" />
+              Dimmer
+            </button>
+            <button className="pad-btn" onClick={() => setActivePanel('audio')}>
+              <Music size={20} color="var(--accent)" />
+              Audio
+            </button>
+            <button className="pad-btn" onClick={() => setActivePanel('clock')}>
+              <Clock size={20} color="var(--accent)" />
+              Clock
+            </button>
+          </div>
         </div>
       ) : (
         <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -255,9 +266,16 @@ function MainWindow() {
             )}
 
             {activePanel === 'clock' && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button className="pad-btn" style={{ flex: 1 }} onClick={() => window.electronAPI.showClock()}>Show</button>
-                <button className="pad-btn" style={{ flex: 1 }} onClick={() => window.electronAPI.hideClock()}>Hide</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="pad-btn" style={{ flex: 1 }} onClick={() => window.electronAPI.showClock()}>Show</button>
+                  <button className="pad-btn" style={{ flex: 1 }} onClick={() => window.electronAPI.hideClock()}>Hide</button>
+                </div>
+                <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+                  <button className="pad-btn" style={{ flex: 1, fontSize: '10px', padding: '4px' }} onClick={() => window.electronAPI.setClockPosition('left')}>Left</button>
+                  <button className="pad-btn" style={{ flex: 1, fontSize: '10px', padding: '4px' }} onClick={() => window.electronAPI.setClockPosition('center')}>Center</button>
+                  <button className="pad-btn" style={{ flex: 1, fontSize: '10px', padding: '4px' }} onClick={() => window.electronAPI.setClockPosition('right')}>Right</button>
+                </div>
               </div>
             )}
           </div>

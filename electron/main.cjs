@@ -174,6 +174,22 @@ ipcMain.handle('hide-clock', () => {
   if (clockWindow) clockWindow.hide();
 });
 
+ipcMain.handle('set-clock-position', (event, pos) => {
+  if (!clockWindow) return;
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, x, y } = primaryDisplay.workArea;
+  const bounds = clockWindow.getBounds();
+  
+  if (pos === 'left') {
+    clockWindow.setPosition(x + 20, y + 20);
+  } else if (pos === 'right') {
+    clockWindow.setPosition(x + width - bounds.width - 20, y + 20);
+  } else {
+    // default center
+    clockWindow.setPosition(x + (width / 2) - (bounds.width / 2), y + 20);
+  }
+});
+
 ipcMain.handle('show-stop-window', () => {
   createStopWindow();
 });

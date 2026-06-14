@@ -1,4 +1,4 @@
-# Celera Halo
+# Celera HALO (Hardware Audio & Light Overlay)
 
 A sleek, robust, and frameless Windows desktop control pad built with Electron, React, and Vite. Designed for ultra-minimalist environment control.
 
@@ -6,11 +6,12 @@ Halo replaces the legacy Python-based Celera Control Pad, completely eliminating
 
 ## Features
 
-- **Headless UI**: Entirely frameless, click-through capable, and designed to snap programmatically to your monitors without any Windows OS borders.
+- **Headless UI**: Entirely frameless, click-through capable, and designed to snap programmatically to your monitors without any Windows OS borders. Draggable to any monitor.
 - **Rock-Solid Audio**: Built-in HTML5 media engine ensures background routines never stutter or crash.
 - **Hardware Dimmer**: Real-time DDC/CI external monitor brightness control powered by a bundled Python utility.
+- **Clock Overlay**: Draggable, transparent clock that can instantly snap to Top Left, Top Center, or Top Right presets.
 - **Routines**:
-  - **Morning**: Safely lowers system volume to 30%, dims all monitors to 40%, spawns a transparent click-through Clock overlay, and begins playing local audio. Displays a "Work" toggle to end the routine.
+  - **Morning**: Spawns the clock, begins playing local audio, and displays a "Work" toggle to end the routine. *(Hardware volume/dimmer automations are currently temporarily disabled for safe testing).*
   - **Nap**: Instantly begins audio and spawns a giant, floating red "STOP" button so audio can be easily disabled upon waking.
 - **Persistent Audio**: Select any local MP3 file via the built-in file browser, and Halo will permanently remember it for all future routines.
 
