@@ -1,7 +1,9 @@
 {
   "name": "halo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "author": "Rob Wingfield",
+  "description": "Halo Environment Control",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -10,9 +12,29 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "build": {
+    "appId": "com.halo.app",
+    "directories": {
+      "output": "dist_installer"
+    },
+    "asarUnpack": [
+      "scripts/**/*"
+    ],
+    "win": {
+      "target": ["portable"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "compression": "store"
+  },
   "dependencies": {
     "loudness": "^0.4.2",
     "lucide-react": "^1.18.0",
+    "music-metadata": "^11.13.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

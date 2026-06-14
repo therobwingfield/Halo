@@ -1,49 +1,44 @@
-# Celera HALO (Hardware Audio & Light Overlay)
+<div align="center">
+  <img src="assets/logo.png" alt="Halo Logo" width="200"/>
 
-A sleek, robust, and frameless Windows desktop control pad built with Electron, React, and Vite. Designed for ultra-minimalist environment control.
+  # Halo Environment Control
+  
+  *A minimalist, frameless desktop environment orchestrator built with Electron, React, and Vite.*
+</div>
 
-Halo replaces the legacy Python-based Celera Control Pad, completely eliminating audio stutters and crashes by leveraging Electron's rock-solid Chromium media engine, while providing a stunning glassmorphism interface that floats natively on your desktop.
+---
 
 ## Features
 
-- **Headless UI**: Entirely frameless, click-through capable, and designed to snap programmatically to your monitors without any Windows OS borders. Draggable to any monitor.
-- **Rock-Solid Audio**: Built-in HTML5 media engine ensures background routines never stutter or crash.
-- **Hardware Dimmer**: Real-time DDC/CI external monitor brightness control powered by a bundled Python utility.
-- **Clock Overlay**: Draggable, transparent clock that can instantly snap to Top Left, Top Center, or Top Right presets.
-- **Routines**:
-  - **Morning**: Spawns the clock, begins playing local audio, and displays a "Work" toggle to end the routine. *(Hardware volume/dimmer automations are currently temporarily disabled for safe testing).*
-  - **Nap**: Instantly begins audio and spawns a giant, floating red "STOP" button so audio can be easily disabled upon waking.
-- **Persistent Audio**: Select any local MP3 file via the built-in file browser, and Halo will permanently remember it for all future routines.
+- **Draggable UI**: A completely frameless, semi-transparent hub that can be positioned anywhere on your screen.
+- **Routines Mode**: Pre-configured routines (like "Leave for Work") that automatically trigger specific environment functions sequentially.
+- **Audio Control**: Manage default playback devices and master volume levels directly from the UI.
+- **Screen Dimming**: Built-in screen dimmer to rapidly drop system brightness for focus or departure.
+- **Modular Clock**: A detached, ultra-minimalist 24-hour clock widget that docks independently.
+- **Auto-Start**: Registers directly into the Windows Startup sequence to boot instantly upon login.
 
-## Architecture
+## Installation
 
-- **Frontend**: React 18, Vite, Vanilla CSS
-- **Backend**: Node.js (Electron Main Process)
-- **Hardware Integrations**: `loudness` (Node.js volume control), `screen-brightness-control` (Python DDC/CI integration)
+Download the official Portable Executable from the [Releases](https://github.com/therobwingfield/halo/releases) page.
 
-## Installation & Development
+1. Place `halo.exe` in your desired permanent folder (e.g., `Desktop` or `Documents`).
+2. Double-click to run.
+3. The app will automatically register its current location to launch seamlessly every time your PC restarts.
 
-### Prerequisites
-- Node.js (v20+)
-- Python (for `screen-brightness-control` hardware hooks)
+## Development
 
-### Setup
-```powershell
-# Install dependencies
+To build the project locally:
+
+```bash
 npm install
-
-# Run locally in development mode
 npm run dev
+```
 
-# Build for production (creates a standalone Windows executable)
+To compile the portable Windows executable:
+
+```bash
 npm run build
 ```
 
-## Structure
-- `src/`: React frontend UI, CSS styling, and grid layout.
-- `electron/`: Node.js main process, IPC handlers, and frameless window configuration.
-- `scripts/`: Python bridging scripts for deep Windows hardware integration.
-- `public/`: Drop your default static assets (like `rain.mp3`) here.
-
-## Attribution
-**Celera Halo** was created and designed by **Rob Wingfield**.
+---
+*Built for Windows 11.*
