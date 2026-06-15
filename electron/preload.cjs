@@ -1,32 +1,24 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  // Dimmer
   getDisplays: () => ipcRenderer.invoke('get-displays'),
   setBrightness: (id, value) => ipcRenderer.invoke('set-brightness', id, value),
   setMasterBrightness: (value) => ipcRenderer.invoke('set-master-brightness', value),
-  setVolume: (value) => ipcRenderer.invoke('set-volume', value),
-  getVolume: () => ipcRenderer.invoke('get-volume'),
-  showClock: () => ipcRenderer.invoke('show-clock'),
-  hideClock: () => ipcRenderer.invoke('hide-clock'),
-  showStopWindow: () => ipcRenderer.invoke('show-stop-window'),
-  hideStopWindow: () => ipcRenderer.invoke('hide-stop-window'),
-  showWorkButton: () => ipcRenderer.invoke('show-work-button'),
-  hideWorkButton: () => ipcRenderer.invoke('hide-work-button'),
-  hideMainWindow: () => ipcRenderer.invoke('hide-main-window'),
-  showMainWindow: () => ipcRenderer.invoke('show-main-window'),
-  setClockPosition: (pos) => ipcRenderer.invoke('set-clock-position', pos),
-  onStopAudio: (callback) => ipcRenderer.on('stop-audio-triggered', callback),
-  getAudioMetadata: (path) => ipcRenderer.invoke('get-audio-metadata', path),
-  selectAudioFile: () => ipcRenderer.invoke('select-audio-file'),
-  openPopout: (name, hash, w, h) => ipcRenderer.invoke('open-popout', name, hash, w, h),
-  closePopout: (name) => ipcRenderer.invoke('close-popout', name),
-  sendAudioCommand: (command, payload) => ipcRenderer.invoke('audio-command', command, payload),
-  onSyncAudioCommand: (callback) => ipcRenderer.on('sync-audio-command', callback),
-  sendAudioStateUpdate: (state) => ipcRenderer.invoke('audio-state-update', state),
-  onSyncAudioState: (callback) => ipcRenderer.on('sync-audio-state', callback),
-  onPopoutStateChange: (callback) => ipcRenderer.on('popout-state-change', callback),
   restoreHardware: () => ipcRenderer.invoke('restore-hardware'),
   setSoftwareDim: (index, opacity) => ipcRenderer.invoke('set-software-dim', index, opacity),
+  // Clock
+  showClock: () => ipcRenderer.invoke('show-clock'),
+  hideClock: () => ipcRenderer.invoke('hide-clock'),
+  setClockPosition: (pos) => ipcRenderer.invoke('set-clock-position', pos),
+  // Main window
+  hideMainWindow: () => ipcRenderer.invoke('hide-main-window'),
+  showMainWindow: () => ipcRenderer.invoke('show-main-window'),
+  // Pop-outs
+  openPopout: (name, hash, w, h) => ipcRenderer.invoke('open-popout', name, hash, w, h),
+  closePopout: (name) => ipcRenderer.invoke('close-popout', name),
+  onPopoutStateChange: (callback) => ipcRenderer.on('popout-state-change', callback),
+  // Feature state sync
   setFeatureState: (name, state) => ipcRenderer.invoke('set-feature-state', name, state),
   getFeatureStates: () => ipcRenderer.invoke('get-feature-states'),
   onSyncFeatureStates: (callback) => ipcRenderer.on('sync-feature-states', callback)

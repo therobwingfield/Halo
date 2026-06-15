@@ -22,19 +22,12 @@
     ],
     "win": {
       "target": ["portable"],
-      "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "icon": "electron/icon.ico"
     },
     "compression": "store"
   },
   "dependencies": {
-    "loudness": "^0.4.2",
     "lucide-react": "^1.18.0",
-    "music-metadata": "^11.13.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

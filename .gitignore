@@ -3,8 +3,10 @@ dist/
 dist_installer/
 release/
 build/
-*.py
+
+# Stray dev scratch files — but keep the tracked brightness script
 *.ps1
+!scripts/brightness.py
 debug.*
 test_*.cjs
 test_*.html

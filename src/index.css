@@ -57,11 +57,11 @@ body {
   overflow: hidden;
 }
 
-/* 2x2 Grid for main buttons */
+/* Grid for main buttons */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 8px;
   padding: 12px;
   flex: 1;
