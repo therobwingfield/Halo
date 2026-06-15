@@ -25,7 +25,7 @@ Halo snapshots each monitor's brightness when it launches and restores it on exi
 
 Download the official Portable Executable from the [Releases](https://github.com/therobwingfield/halo/releases) page.
 
-1. Download the `halo 0.0.1.exe` file and move it to your desired permanent folder (e.g., your `Desktop` or `Documents` folder).
+1. Download the `halo 0.1.0.exe` file and move it to your desired permanent folder (e.g., your `Desktop` or `Documents` folder).
 2. Double-click the file to launch the application.
 3. **Auto-Start**: On first run Halo registers itself into the Windows Startup sequence and launches in the background every time you sign in.
 
