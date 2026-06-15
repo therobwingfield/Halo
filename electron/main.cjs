@@ -33,6 +33,19 @@ function resolveScriptPath() {
   return path.join(process.resourcesPath, 'app.asar.unpacked', 'scripts', 'brightness.py');
 }
 
+// Dimmer slider position (0-100) applied automatically on launch, so the screens
+// come up already dimmed and ready to fine-tune instead of at full brightness.
+const STARTUP_SLIDER = 50;
+
+// Same mapping the dimmer UI uses: slider 50-100 drives hardware brightness 0-100,
+// and slider 0-50 fades in a black overlay (up to 0.9) on top of hardware-minimum.
+function sliderToHardware(slider) {
+  return slider > 50 ? Math.round((slider - 50) * 2) : 0;
+}
+function sliderToOverlay(slider) {
+  return slider <= 50 ? 0.9 * ((50 - slider) / 50) : 0;
+}
+
 function runBrightnessScript(args) {
   return new Promise((resolve) => {
     const scriptPath = resolveScriptPath();
@@ -48,6 +61,21 @@ function runBrightnessScript(args) {
       }
     });
   });
+}
+
+// On launch: snapshot the current brightness (so exit can restore it), then dim every
+// monitor to STARTUP_SLIDER so the screens start dimmed and ready to adjust.
+async function applyStartupDim() {
+  if (!activeFeatures.dimmer) return;
+  const displays = await runBrightnessScript(['get']);
+  if (displays.length > 0 && initialBrightnessSnapshot.length === 0) {
+    initialBrightnessSnapshot = JSON.parse(JSON.stringify(displays)); // deep copy snapshot
+  }
+  await runBrightnessScript(['set_master', sliderToHardware(STARTUP_SLIDER)]);
+  const overlay = sliderToOverlay(STARTUP_SLIDER);
+  for (const win of softwareOverlays) {
+    if (!win.isDestroyed()) win.setOpacity(overlay);
+  }
 }
 
 // Fire-and-forget restore of the brightness we captured at launch. Runs detached so it
@@ -184,6 +212,7 @@ app.whenReady().then(() => {
 
   createMainWindow();
   createSoftwareOverlays();
+  applyStartupDim();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

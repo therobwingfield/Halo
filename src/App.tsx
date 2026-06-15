@@ -80,7 +80,7 @@ function MainMenu() {
 
 function DimmerWindow() {
   const [displays, setDisplays] = useState<any[]>([]);
-  const [masterBrightness, setMasterBrightness] = useState<number>(40);
+  const [masterBrightness, setMasterBrightness] = useState<number>(50);
   const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
