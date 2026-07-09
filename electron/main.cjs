@@ -137,7 +137,11 @@ function createMainWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
-      webSecurity: false
+      webSecurity: false,
+      // Halo's windows are always-on-top overlays that are rarely the FOCUSED window, so Chromium
+      // throttles their renderers (~1fps + coarse timers) → clicks and updates react slowly. Disabling
+      // background throttling keeps the widget, clock, and popouts instantly responsive.
+      backgroundThrottling: false
     }
   });
 
@@ -181,7 +185,11 @@ function createClockWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
-      webSecurity: false
+      webSecurity: false,
+      // Halo's windows are always-on-top overlays that are rarely the FOCUSED window, so Chromium
+      // throttles their renderers (~1fps + coarse timers) → clicks and updates react slowly. Disabling
+      // background throttling keeps the widget, clock, and popouts instantly responsive.
+      backgroundThrottling: false
     }
   });
   clockWindow.setIgnoreMouseEvents(true);
@@ -368,7 +376,11 @@ function createChildWindow(name, hash, width, height) {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
-      webSecurity: false
+      webSecurity: false,
+      // Halo's windows are always-on-top overlays that are rarely the FOCUSED window, so Chromium
+      // throttles their renderers (~1fps + coarse timers) → clicks and updates react slowly. Disabling
+      // background throttling keeps the widget, clock, and popouts instantly responsive.
+      backgroundThrottling: false
     }
   });
 
