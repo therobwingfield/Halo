@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setBrightness: (id, value) => ipcRenderer.invoke('set-brightness', id, value),
   setMasterBrightness: (value) => ipcRenderer.invoke('set-master-brightness', value),
   restoreHardware: () => ipcRenderer.invoke('restore-hardware'),
+  getRecoveryState: () => ipcRenderer.invoke('get-recovery-state'),
+  // Auto-dim
+  getAutoDimState: () => ipcRenderer.invoke('get-autodim-state'),
+  setAutoDimEnabled: (on) => ipcRenderer.invoke('set-autodim-enabled', on),
+  setAutoDimStrength: (v) => ipcRenderer.invoke('set-autodim-strength', v),
   setSoftwareDim: (index, opacity) => ipcRenderer.invoke('set-software-dim', index, opacity),
   // Clock
   showClock: () => ipcRenderer.invoke('show-clock'),

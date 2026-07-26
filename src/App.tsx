@@ -63,7 +63,7 @@ function MainMenu() {
       <div className="main-grid no-drag" style={{ flex: 1 }}>
         <button className="pad-btn"
                 style={{ background: activeFeatures['dimmer'] ? 'rgba(46, 213, 115, 0.2)' : undefined, borderColor: activeFeatures['dimmer'] ? '#2ed573' : undefined }}
-                onClick={() => window.electronAPI.openPopout('dimmer', '/dimmer', 350, 250)}>
+                onClick={() => window.electronAPI.openPopout('dimmer', '/dimmer', 360, 470)}>
           <Sun size={24} color={activeFeatures['dimmer'] ? '#2ed573' : 'var(--accent)'} />
           Dimmer
         </button>
@@ -82,6 +82,35 @@ function DimmerWindow() {
   const [displays, setDisplays] = useState<any[]>([]);
   const [masterBrightness, setMasterBrightness] = useState<number>(50);
   const [isEnabled, setIsEnabled] = useState(true);
+  const [auto, setAuto] = useState<any>({ enabled: true, maxOpacity: 0.62, displays: [] });
+  const [recovery, setRecovery] = useState<any>(null);
+
+  // Live auto-dim readout. Polls the main process, which owns the sampler.
+  useEffect(() => {
+    let alive = true;
+    const poll = async () => {
+      try {
+        const s = await window.electronAPI.getAutoDimState();
+        if (alive && s) setAuto(s);
+      } catch (e) { /* ignore */ }
+    };
+    poll();
+    const t = setInterval(poll, 500);
+    window.electronAPI.getRecoveryState?.().then((r: any) => { if (alive) setRecovery(r); }).catch(() => {});
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+
+  const toggleAuto = async () => {
+    const next = !auto.enabled;
+    await window.electronAPI.setAutoDimEnabled(next);
+    setAuto((a: any) => ({ ...a, enabled: next }));
+  };
+
+  const restoreMonitors = async () => {
+    await window.electronAPI.restoreHardware();
+    setMasterBrightness(100);
+    setDisplays(prev => prev.map((d: any) => ({ ...d, unifiedBrightness: 100 })));
+  };
 
   useEffect(() => {
     window.electronAPI.getFeatureStates().then((states: any) => setIsEnabled(states.dimmer ?? true));
@@ -198,8 +227,61 @@ function DimmerWindow() {
         ))}
       </div>
 
+      {/* Auto-dim: content-adaptive dimming, active whenever Halo runs */}
+      <div className="no-drag" style={{ marginTop: '14px', borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '11px', letterSpacing: '1px', color: 'var(--text-primary)', fontWeight: 'bold' }}>AUTO-DIM</span>
+          <button onClick={toggleAuto} style={{
+            fontSize: '10px', padding: '3px 10px', borderRadius: '6px', cursor: 'pointer',
+            background: auto.enabled ? 'rgba(46,213,115,0.18)' : 'rgba(255,255,255,0.06)',
+            border: `1px solid ${auto.enabled ? '#2ed573' : 'rgba(255,255,255,0.25)'}`,
+            color: auto.enabled ? '#2ed573' : 'var(--text-secondary)'
+          }}>{auto.enabled ? 'ON' : 'OFF'}</button>
+        </div>
+
+        {(auto.displays || []).map((d: any) => (
+          <div key={d.index} style={{ marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)' }}>
+              <span>Screen {d.index + 1}</span>
+              <span>content {Math.round(d.luma * 100)}% → dim {Math.round(d.autoOpacity * 100)}%</span>
+            </div>
+            <div style={{ height: '4px', background: 'rgba(255,255,255,0.10)', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
+              <div style={{ width: `${Math.round(d.autoOpacity * 100)}%`, height: '100%', background: '#2ed573', transition: 'width 120ms linear' }} />
+            </div>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-secondary)', minWidth: '52px' }}>Strength</span>
+          <input type="range" min="0" max="90" value={Math.round((auto.maxOpacity ?? 0.62) * 100)}
+            onChange={(e) => {
+              const v = parseInt(e.target.value) / 100;
+              setAuto((a: any) => ({ ...a, maxOpacity: v }));
+              window.electronAPI.setAutoDimStrength(v);
+            }}
+            style={{ flex: 1 }} />
+          <span style={{ fontSize: '10px', minWidth: '28px', textAlign: 'right' }}>{Math.round((auto.maxOpacity ?? 0.62) * 100)}%</span>
+        </div>
+      </div>
+
+      {/* Hand the monitors back to their pre-Halo brightness (survives a crash, see A1) */}
+      <div className="no-drag" style={{ marginTop: '10px' }}>
+        <button onClick={restoreMonitors} style={{
+          width: '100%', padding: '8px', borderRadius: '8px', cursor: 'pointer',
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.25)',
+          color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.5px'
+        }}>
+          RESTORE MONITORS{recovery?.preHaloBrightness?.length ? ` (${recovery.preHaloBrightness[0].brightness}%)` : ''}
+        </button>
+        {recovery?.uncleanPreviousExit && (
+          <div style={{ fontSize: '9px', color: '#ffa502', marginTop: '5px', textAlign: 'center' }}>
+            Last session ended unexpectedly — brightness was not restored.
+          </div>
+        )}
+      </div>
+
       {/* Massive Enable/Disable button outside the disabled pointer area */}
-      <div className="no-drag" style={{ marginTop: '16px' }}>
+      <div className="no-drag" style={{ marginTop: '12px' }}>
         <button onClick={toggleDimmer} style={{
           width: '100%',
           padding: '12px',
