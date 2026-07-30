@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setAutoDimEnabled: (on) => ipcRenderer.invoke('set-autodim-enabled', on),
   setAutoDimStrength: (v) => ipcRenderer.invoke('set-autodim-strength', v),
   setSoftwareDim: (index, opacity) => ipcRenderer.invoke('set-software-dim', index, opacity),
+  setDisplayTrim: (index, value) => ipcRenderer.invoke('set-display-trim', index, value),
   // Clock
   showClock: () => ipcRenderer.invoke('show-clock'),
   hideClock: () => ipcRenderer.invoke('hide-clock'),

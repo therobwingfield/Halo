@@ -121,12 +121,29 @@ function DimmerWindow() {
   useEffect(() => {
     const loadDisplays = async () => {
       const res = await window.electronAPI.getDisplays();
+
+      // Hardware brightness only ever describes the 50-100 half of the slider: every
+      // position at or below 50 sets hardware 0 and dims with the overlay instead. So
+      // hardware alone cannot place the handle in the lower half, and reading it back was
+      // resolving a restored software floor to 50 (= no dimming) on every launch.
+      // The persisted floor (A7) is the only source for that half.
+      let floor = 0;
+      try {
+        const st: any = await window.electronAPI.getAutoDimState();
+        // Max across panels: the master slider writes one floor to all of them, and where
+        // they differ the darker value is the safe one to display.
+        floor = (st?.displays ?? []).reduce(
+          (m: number, d: any) => Math.max(m, d.manualOpacity ?? 0), 0);
+      } catch { /* fall back to the hardware-derived position */ }
+
+      const toSlider = (hardware: number) =>
+        floor > 0 ? Math.max(0, 50 - (floor / 0.9) * 50) : 50 + (hardware / 2);
+
       if (res.length > 0) {
-        // Map hardware brightness 0-100 to slider 50-100
         const avg = res.reduce((acc: number, d: any) => acc + d.brightness, 0) / res.length;
-        setMasterBrightness(50 + (avg / 2));
+        setMasterBrightness(toSlider(avg));
       }
-      setDisplays(res.map((d: any) => ({ ...d, unifiedBrightness: 50 + (d.brightness / 2) })));
+      setDisplays(res.map((d: any) => ({ ...d, unifiedBrightness: toSlider(d.brightness) })));
     };
     loadDisplays();
   }, []);
@@ -240,13 +257,28 @@ function DimmerWindow() {
         </div>
 
         {(auto.displays || []).map((d: any) => (
-          <div key={d.index} style={{ marginBottom: '6px' }}>
+          <div key={d.index} style={{ marginBottom: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)' }}>
               <span>Screen {d.index + 1}</span>
-              <span>content {Math.round(d.luma * 100)}% → dim {Math.round(d.autoOpacity * 100)}%</span>
+              <span>content {Math.round(d.luma * 100)}% → dim {Math.round((d.effective ?? d.autoOpacity) * 100)}%</span>
             </div>
             <div style={{ height: '4px', background: 'rgba(255,255,255,0.10)', borderRadius: '2px', overflow: 'hidden', marginTop: '3px' }}>
-              <div style={{ width: `${Math.round(d.autoOpacity * 100)}%`, height: '100%', background: '#2ed573', transition: 'width 120ms linear' }} />
+              <div style={{ width: `${Math.round((d.effective ?? d.autoOpacity) * 100)}%`, height: '100%', background: '#2ed573', transition: 'width 120ms linear' }} />
+            </div>
+            {/* A6 — per-panel calibration. Additive, so it holds when auto-dim takes over. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <span style={{ fontSize: '9px', color: 'var(--text-secondary)', minWidth: '30px' }}>Trim</span>
+              <input type="range" min="0" max="40" value={Math.round((d.trim ?? 0) * 100)}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value) / 100;
+                  setAuto((a: any) => ({
+                    ...a,
+                    displays: a.displays.map((x: any) => x.index === d.index ? { ...x, trim: v } : x)
+                  }));
+                  window.electronAPI.setDisplayTrim(d.index, v);
+                }}
+                style={{ flex: 1 }} />
+              <span style={{ fontSize: '9px', minWidth: '26px', textAlign: 'right' }}>+{Math.round((d.trim ?? 0) * 100)}%</span>
             </div>
           </div>
         ))}
