@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Main window
   hideMainWindow: () => ipcRenderer.invoke('hide-main-window'),
   showMainWindow: () => ipcRenderer.invoke('show-main-window'),
+  // Restores the pre-Halo brightness, then exits
+  quitApp: () => ipcRenderer.invoke('quit-app'),
   // Pop-outs
   openPopout: (name, hash, w, h) => ipcRenderer.invoke('open-popout', name, hash, w, h),
   closePopout: (name) => ipcRenderer.invoke('close-popout', name),

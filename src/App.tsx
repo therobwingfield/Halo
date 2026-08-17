@@ -63,7 +63,7 @@ function MainMenu() {
       <div className="main-grid no-drag" style={{ flex: 1 }}>
         <button className="pad-btn"
                 style={{ background: activeFeatures['dimmer'] ? 'rgba(46, 213, 115, 0.2)' : undefined, borderColor: activeFeatures['dimmer'] ? '#2ed573' : undefined }}
-                onClick={() => window.electronAPI.openPopout('dimmer', '/dimmer', 360, 470)}>
+                onClick={() => window.electronAPI.openPopout('dimmer', '/dimmer', 360, 545)}>
           <Sun size={24} color={activeFeatures['dimmer'] ? '#2ed573' : 'var(--accent)'} />
           Dimmer
         </button>
@@ -84,6 +84,7 @@ function DimmerWindow() {
   const [isEnabled, setIsEnabled] = useState(true);
   const [auto, setAuto] = useState<any>({ enabled: true, maxOpacity: 0.62, displays: [] });
   const [recovery, setRecovery] = useState<any>(null);
+  const [confirmQuit, setConfirmQuit] = useState(false);
 
   // Live auto-dim readout. Polls the main process, which owns the sampler.
   useEffect(() => {
@@ -110,6 +111,17 @@ function DimmerWindow() {
     await window.electronAPI.restoreHardware();
     setMasterBrightness(100);
     setDisplays(prev => prev.map((d: any) => ({ ...d, unifiedBrightness: 100 })));
+  };
+
+  // Two-step on purpose: this button sits directly under DISABLE DIMMER, and a stray click
+  // that closes the app mid-session is a far more annoying misfire than one extra click.
+  const quitHalo = async () => {
+    if (!confirmQuit) {
+      setConfirmQuit(true);
+      setTimeout(() => setConfirmQuit(false), 3000);
+      return;
+    }
+    await window.electronAPI.quitApp();
   };
 
   useEffect(() => {
@@ -331,6 +343,29 @@ function DimmerWindow() {
         }}>
           {isEnabled ? 'DISABLE DIMMER' : 'ENABLE DIMMER'}
         </button>
+      </div>
+
+      {/* The only exit that hands the monitors back. Halo is frameless, always-on-top and
+          skipTaskbar, so without this the only way out is killing the process -- which skips
+          the restore and leaves the panels stuck at whatever brightness Halo last wrote. */}
+      <div className="no-drag" style={{ marginTop: '8px' }}>
+        <button onClick={quitHalo} style={{
+          width: '100%',
+          padding: '8px',
+          borderRadius: '8px',
+          background: confirmQuit ? 'rgba(255, 71, 87, 0.25)' : 'transparent',
+          border: `1px solid ${confirmQuit ? '#ff4757' : 'rgba(255,255,255,0.18)'}`,
+          color: confirmQuit ? '#ff4757' : 'var(--text-secondary)',
+          cursor: 'pointer',
+          fontSize: '11px',
+          letterSpacing: '0.5px',
+          fontWeight: confirmQuit ? 'bold' : 'normal'
+        }}>
+          {confirmQuit ? 'CLICK AGAIN TO QUIT' : 'QUIT HALO'}
+        </button>
+        <div style={{ fontSize: '9px', color: 'var(--text-secondary)', marginTop: '4px', textAlign: 'center', opacity: 0.75 }}>
+          Restores your monitors, then exits
+        </div>
       </div>
     </div>
   );

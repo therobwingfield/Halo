@@ -271,6 +271,19 @@ async function applyStartupDim() {
   }
 }
 
+// Pick the safest key to restore a snapshot entry by.
+//
+// brightness.py now reports a stable per-panel id, but snapshots written by older builds
+// are keyed by enumeration INDEX -- and that index silently retargets when the Windows
+// primary display changes, so replaying one can hand each monitor the other's brightness.
+// Where such a record also carries the panel name, the name is the better key; the script
+// resolves either. Only a record with nothing but an index falls through to the old path.
+function snapshotKey(entry) {
+  const id = String(entry.id ?? '');
+  if (/^\d+$/.test(id) && entry.name) return entry.name;
+  return id;
+}
+
 // Fire-and-forget restore of the brightness we captured at launch. Runs detached so it
 // completes even while the app is tearing down.
 function restoreBrightnessOnExit() {
@@ -283,7 +296,7 @@ function restoreBrightnessOnExit() {
   try {
     const scriptPath = resolveScriptPath();
     for (const d of initialBrightnessSnapshot) {
-      const child = spawn('python', [scriptPath, 'set', d.id, String(d.brightness)], {
+      const child = spawn('python', [scriptPath, 'set', snapshotKey(d), String(d.brightness)], {
         detached: true,
         stdio: 'ignore',
         windowsHide: true,
@@ -636,6 +649,20 @@ app.on('will-quit', () => {
   if (gotSingleInstanceLock) restoreBrightnessOnExit();
 });
 
+// An explicit, user-driven "I'm done with Halo" exit.
+//
+// Halo runs as a frameless always-on-top overlay with skipTaskbar set, so there is no
+// window chrome, no taskbar entry and no tray to quit from -- the only way out used to be
+// killing the process, which SKIPS the restore and strands the panels at whatever
+// brightness Halo last wrote. DDC values live in the monitor's own controller, so nothing
+// else will ever put them back. Restoring here first, before app.quit(), means the way out
+// that is actually reachable from the UI is also the one that hands the monitors back.
+ipcMain.handle('quit-app', () => {
+  restoreBrightnessOnExit();   // guarded by brightnessRestored; before-quit re-entry is a no-op
+  app.quit();
+  return true;
+});
+
 // --- Brightness / dimmer ---
 
 ipcMain.handle('get-displays', async () => {
@@ -656,7 +683,7 @@ ipcMain.handle('restore-hardware', async () => {
   }
   if (snap && snap.length > 0) {
     for (const d of snap) {
-      await runBrightnessScript(['set', d.id, d.brightness]);
+      await runBrightnessScript(['set', snapshotKey(d), d.brightness]);
     }
   }
   // Clear the manual FLOOR too, not just the current opacity. desiredOpacity() is
