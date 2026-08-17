@@ -553,8 +553,11 @@ app.on('second-instance', () => {
 app.whenReady().then(() => {
   if (!gotSingleInstanceLock) return; // secondary instance: create nothing, own nothing
 
+  // Halo is launched on demand from its pinned taskbar icon, not at logon. This runs on every
+  // start, so leaving it `true` silently re-armed autostart even after it was turned off in
+  // Settings → Startup Apps; `false` makes each launch actively clear the Run entry instead.
   app.setLoginItemSettings({
-    openAtLogin: true,
+    openAtLogin: false,
     path: portableExe,
     args: []
   });
